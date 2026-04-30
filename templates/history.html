@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction History - Student Performance Predictor</title>
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Student Performance Predictor
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-home me-1"></i>
+                    Predict
+                </a>
+                <a class="nav-link active" href="/history">
+                    <i class="fas fa-history me-1"></i>
+                    History
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <h2 class="title">
+                        Prediction History
+                    </h2>
+
+                    {% if history|length == 0 %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                        <h4>No predictions yet.</h4>
+                        <p class="text-muted">Start making predictions to see your history here!</p>
+                        <a href="/" class="btn btn-custom mt-3">
+                            <i class="fas fa-plus me-2"></i>
+                            Make First Prediction
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-user me-1"></i> Student Name</th>
+                                    <th><i class="fas fa-calendar-check me-1"></i> Attendance (%)</th>
+                                    <th><i class="fas fa-tasks me-1"></i> Assignment</th>
+                                    <th><i class="fas fa-book me-1"></i> Internal Marks</th>
+                                    <th><i class="fas fa-trophy me-1"></i> Predicted Marks</th>
+                                    <th><i class="fas fa-award me-1"></i> Grade</th>
+                                    <th><i class="fas fa-star me-1"></i> Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in history %}
+                                <tr>
+                                    <td><strong>{{ item.student_name }}</strong></td>
+                                    <td>{{ item.attendance|round(1) }}%</td>
+                                    <td>{{ item.assignment_score|round(1) }}</td>
+                                    <td>{{ item.internal_marks|round(1) }}</td>
+                                    <td class="fw-bold">
+                                        <span class="text-primary">{{ item.prediction }}</span>
+                                    </td>
+                                    <td>
+                                        {% if item.grade == 'A+' or item.grade == 'A' %}
+                                            <span class="badge bg-success">{{ item.grade }}</span>
+                                        {% elif item.grade == 'B' %}
+                                            <span class="badge bg-info">{{ item.grade }}</span>
+                                        {% elif item.grade == 'C' %}
+                                            <span class="badge bg-warning text-dark">{{ item.grade }}</span>
+                                        {% elif item.grade == 'D' %}
+                                            <span class="badge bg-orange">{{ item.grade }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ item.grade }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.prediction >= 80 %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-star me-1"></i>Excellent
+                                            </span>
+                                        {% elif item.prediction >= 60 %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-thumbs-up me-1"></i>Good
+                                            </span>
+                                        {% elif item.prediction >= 40 %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-minus me-1"></i>Average
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation me-1"></i>Needs Work
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Statistics Summary -->
+                    <div class="row mt-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="stat-box">
+                                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                                    <h5 class="mb-1">{{ history|length }}</h5>
+                                    <small class="text-muted">Total Predictions</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="stat-box">
+                                    <i class="fas fa-trophy fa-2x text-success mb-2"></i>
+                                    <h5 class="mb-1">{{ history|selectattr('prediction', 'ge', 80)|list|length }}</h5>
+                                    <small class="text-muted">Excellent</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="stat-box">
+                                    <i class="fas fa-thumbs-up fa-2x text-info mb-2"></i>
+                                    <h5 class="mb-1">{{ history|selectattr('prediction', 'ge', 60)|list|length - history|selectattr('prediction', 'ge', 80)|list|length }}</h5>
+                                    <small class="text-muted">Good</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="stat-box">
+                                    <i class="fas fa-calculator fa-2x text-warning mb-2"></i>
+                                    <h5 class="mb-1">{{ (history|map(attribute='prediction')|sum / history|length)|round(1) }}</h5>
+                                    <small class="text-muted">Average Score</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <div class="d-grid gap-2 d-md-block">
+                            <a href="/" class="btn btn-custom me-md-2 mb-2 mb-md-0">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                New Prediction
+                            </a>
+                            <button class="btn btn-outline-danger me-md-2 mb-2 mb-md-0" onclick="clearHistory()">
+                                <i class="fas fa-trash me-2"></i>
+                                Clear History
+                            </button>
+                            <div class="btn-group d-block d-md-inline-block mt-2" role="group">
+                                <button class="btn btn-success" id="exportExcelBtn">
+                                    <i class="fas fa-file-excel me-2"></i>
+                                    Export Excel
+                                </button>
+                                <button class="btn btn-danger" id="exportPdfBtn">
+                                    <i class="fas fa-file-pdf me-2"></i>
+                                    Export PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling polyfill for Safari and older browsers
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all prediction history? This action cannot be undone.')) {
+                fetch('/clear-history', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Failed to clear history. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while clearing history.');
+                    });
+            }
+        }
+
+        // Export button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportExcelBtn = document.getElementById('exportExcelBtn');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+
+            async function downloadFile(url, filename, btn, originalHtml) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        const data = await response.json();
+                        alert('Export failed: ' + (data.message || 'Unknown error'));
+                        return;
+                    }
+
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(downloadUrl);
+                    document.body.removeChild(a);
+
+                } catch (error) {
+                    alert('Export failed: ' + error.message);
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            }
+
+            if (exportExcelBtn) {
+                const originalHtml = exportExcelBtn.innerHTML;
+                exportExcelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    downloadFile('/export/excel', 'student_performance_history.xlsx', this, originalHtml);
+                });
+            }
+
+            if (exportPdfBtn) {
+                const originalHtml = exportPdfBtn.innerHTML;
+                exportPdfBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    downloadFile('/export/pdf', 'student_performance_history.pdf', this, originalHtml);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
